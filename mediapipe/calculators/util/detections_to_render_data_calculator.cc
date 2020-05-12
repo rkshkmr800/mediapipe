@@ -100,7 +100,7 @@ class DetectionsToRenderDataCalculator : public CalculatorBase {
 
   static void SetRectCoordinate(bool normalized, double xmin, double ymin,
                                 double width, double height,
-                                RenderAnnotation::Rectangle* rect);
+                                RenderAnnotation::RoundedRectangle* roundRect);
 
   static void AddLabels(const Detection& detection,
                         const DetectionsToRenderDataCalculatorOptions& options,
@@ -202,11 +202,13 @@ void DetectionsToRenderDataCalculator::SetTextCoordinate(
 
 void DetectionsToRenderDataCalculator::SetRectCoordinate(
     bool normalized, double xmin, double ymin, double width, double height,
-    RenderAnnotation::Rectangle* rect) {
+     RenderAnnotation::RoundedRectangle* roundRect) {
   if (xmin + width < 0.0 || ymin + height < 0.0) return;
   if (normalized) {
     if (xmin > 1.0 || ymin > 1.0) return;
   }
+
+  auto* rect = roundRect->mutable_rectangle();
   rect->set_normalized(normalized);
   rect->set_left(normalized ? std::max(xmin, 0.0) : xmin);
   rect->set_top(normalized ? std::max(ymin, 0.0) : ymin);
@@ -217,6 +219,9 @@ void DetectionsToRenderDataCalculator::SetRectCoordinate(
   // 1.0.
   rect->set_right(normalized ? std::min(xmin + width, 1.0) : xmin + width);
   rect->set_bottom(normalized ? std::min(ymin + height, 1.0) : ymin + height);
+
+  roundRect->set_corner_radius(60);
+  roundRect->set_line_type(4);
 }
 
 void DetectionsToRenderDataCalculator::AddLabels(
@@ -276,7 +281,7 @@ void DetectionsToRenderDataCalculator::AddLabels(
       SetTextCoordinate(
           true, detection.location_data().relative_bounding_box().xmin(),
           detection.location_data().relative_bounding_box().ymin() +
-              (i + 1) * text_line_height,
+              (i + 1) * text_line_height ,
           text);
     }
   }
@@ -313,20 +318,21 @@ void DetectionsToRenderDataCalculator::AddLocationData(
   auto* location_data_annotation = render_data->add_render_annotations();
   location_data_annotation->set_scene_tag(kSceneLocationLabel);
   SetRenderAnnotationColorThickness(options, location_data_annotation);
-  auto* location_data_rect = location_data_annotation->mutable_rectangle();
+  //auto* location_data_rect = location_data_annotation->mutable_rectangle();
+  auto* location_data_rounded_rect = location_data_annotation->mutable_rounded_rectangle();
   if (detection.location_data().format() == LocationData::BOUNDING_BOX) {
     SetRectCoordinate(false, detection.location_data().bounding_box().xmin(),
                       detection.location_data().bounding_box().ymin(),
                       detection.location_data().bounding_box().width(),
                       detection.location_data().bounding_box().height(),
-                      location_data_rect);
+                      location_data_rounded_rect);
   } else {
     SetRectCoordinate(
         true, detection.location_data().relative_bounding_box().xmin(),
         detection.location_data().relative_bounding_box().ymin(),
         detection.location_data().relative_bounding_box().width(),
         detection.location_data().relative_bounding_box().height(),
-        location_data_rect);
+        location_data_rounded_rect);
     // Keypoints are only supported in normalized/relative coordinates.
     if (detection.location_data().relative_keypoints_size()) {
       for (int i = 0; i < detection.location_data().relative_keypoints_size();

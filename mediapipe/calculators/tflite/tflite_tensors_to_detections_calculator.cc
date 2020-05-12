@@ -101,10 +101,10 @@ void ConvertAnchorsToRawValues(const std::vector<Anchor>& anchors,
   CHECK_EQ(anchors.size(), num_boxes);
   int box = 0;
   for (const auto& anchor : anchors) {
-    raw_anchors[box * kNumCoordsPerBox + 0] = anchor.y_center();
-    raw_anchors[box * kNumCoordsPerBox + 1] = anchor.x_center();
-    raw_anchors[box * kNumCoordsPerBox + 2] = anchor.h();
-    raw_anchors[box * kNumCoordsPerBox + 3] = anchor.w();
+    raw_anchors[box * kNumCoordsPerBox + 0] = anchor.y_center() ;
+    raw_anchors[box * kNumCoordsPerBox + 1] = anchor.x_center() ;
+    raw_anchors[box * kNumCoordsPerBox + 2] = anchor.h() ;
+    raw_anchors[box * kNumCoordsPerBox + 3] = anchor.w() ;
     ++box;
   }
 }
